@@ -1,0 +1,29 @@
+{
+    "name": "原神自動簽到",
+    "description": "原神自動簽到",
+    "version": "1.0",
+    "manifest_version": 3,
+    "background": {
+      "service_worker": "background.js"
+    },
+    "host_permissions": [
+      "*://*.hoyolab.com/*",
+      "*://*.geetest.com/*"
+    ],
+    "permissions": ["storage", "alarms", "cookies"],
+    "action": {
+      "default_popup": "index.html",
+      "default_icon": {
+        "16": "/images/icon16-modified.png",
+        "32": "/images/icon32-modified.png",
+        "48": "/images/icon48-modified.png",
+        "128": "/images/icon128-modified.png"
+      }
+    },
+    "icons": {
+      "16": "/images/icon16-modified.png",
+      "32": "/images/icon32-modified.png",
+      "48": "/images/icon48-modified.png",
+      "128": "/images/icon128-modified.png"
+    }
+}
