@@ -238,74 +238,34 @@ $(() => {
       $("#not-login").hide();
     }
   });
-  chrome.storage.onChanged.addListener(function (changes, areaName) {
-    if (areaName === "sync") {
-      // if (changes.state) {
-      //   if (changes.state.newValue === "not-login") {
-      //     $("#not-login").show();
-      //     $("#check-in").hide();
-      //     $("#not-check-in").hide();
-      //   } else {
-      //     $("#check-in").show();
-      //     $("#not-login").hide();
-      //     $("#not-check-in").hide();
-      //   }
-      // }
+
+  $("#prev").on("click", function () {
+    let num = parseInt($(".activeNum").attr("id"));
+    $("#" + num)
+      .removeClass("activeNum")
+      .addClass("hidden");
+    if (num == 1) {
+      num = 3;
+    } else {
+      num--;
     }
+    $("#" + num)
+      .addClass("activeNum")
+      .removeClass("hidden");
   });
-  // chrome.storage.sync.get(["state"], function (data) {
-  //   console.log(data);
-  // });
+
+  $("#next").on("click", function () {
+    let num = parseInt($(".activeNum").attr("id"));
+    $("#" + num)
+      .removeClass("activeNum")
+      .addClass("hidden");
+    if (num == 3) {
+      num = 1;
+    } else {
+      num++;
+    }
+    $("#" + num)
+      .addClass("activeNum")
+      .removeClass("hidden");
+  });
 });
-
-// //簽到
-// function completeTask() {
-//   fetch("https://sg-hk4e-api.hoyolab.com/event/sol/complete_task", {
-//     referrerPolicy: "strict-origin-when-cross-origin",
-//     body: JSON.stringify({ act_id: "e202102251931481" }),
-//     method: "POST",
-//     mode: "cors",
-//     credentials: "include",
-//   })
-//     .then((response) => response.json())
-//     .then((data) => {
-//       console.log(data);
-//     });
-// }
-
-// fetch("https://api-takumi.mihoyo.com/event/bbs_sign_reward/sign", {
-//     headers: {
-//       accept: "application/json, text/plain, */*",
-//       "accept-language": "zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7",
-//       "content-type": "application/json;charset=UTF-8",
-//       "sec-ch-ua":
-//         '"Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"',
-//       "sec-ch-ua-mobile": "?0",
-//       "sec-ch-ua-platform": '"Windows"',
-//       "sec-fetch-dest": "empty",
-//       "sec-fetch-mode": "cors",
-//       "sec-fetch-site": "same-site",
-//     },
-//     referrer:
-//       "https://webstatic.mihoyo.com/app/community-game-records/index.html?v=6",
-//     referrerPolicy: "strict-origin-when-cross-origin",
-//     body: JSON.stringify({
-//       act_id: "e202009291139501",
-//       region: checkInInfo.region,
-//       uid: checkInInfo.uid,
-//     }),
-//     method: "POST",
-//     mode: "cors",
-//     credentials: "include",
-//   })
-//     .then((response) => response.json())
-//     .then((data) => {
-//       console.log(data);
-//       if (data.retcode === 0) {
-//         resignInfo = {
-//           signed: true,
-//           days: data.data.total_sign_day,
-//           rewards: data.data.add_num,
-//         };
-//       }
-//     });

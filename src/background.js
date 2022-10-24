@@ -42,7 +42,6 @@ function autoCheckIn() {
         now.getTime() >= signTime.getTime()
       ) {
         checkIn();
-        chrome.storage.sync.set({ lastDate: new Date().toLocaleString() });
       }
     } else if (result.state === "close") {
       //不自動簽到
@@ -62,6 +61,7 @@ async function checkIn() {
     return false;
   }
   await sign();
+  chrome.storage.sync.set({ lastDate: new Date().toLocaleString() });
   //補簽
   await resign(checkInInfo);
 }
@@ -111,7 +111,7 @@ async function getCheckInInfo() {
 async function sign() {
   let response = await fetch("https://sg-hk4e-api.hoyolab.com/event/sol/sign", {
     referrerPolicy: "strict-origin-when-cross-origin",
-    body: JSON.stringify({ act_id: "e202102251931481" }),
+    body: JSON.stringify({ act_id: "e202102251931481", lang: "zh-tw" }),
     method: "POST",
     mode: "cors",
     credentials: "include",

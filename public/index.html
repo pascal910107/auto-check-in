@@ -61,11 +61,25 @@
       </div>
 
       <div class="relative col-start-3 col-end-4">
-          <img src="/images/prev.png" width="36" class="absolute cursor-pointer select-none" style="top:2.2rem;left:-3rem;">
-          <div class="flex items-center justify-center bg-white rounded-full w-20 h-20 hover:bg-d cursor-pointer absolute top-1" style="box-shadow:0 0 4px #2e8c8a;right: 1.7rem;">
-              <a href="https://act.hoyolab.com/ys/event/signin-sea-v3/index.html?act_id=e202102251931481" class="text-b text-xl font-semibold w-12 h-12 flex text-center items-center select-none" target="_blank">簽到頁面</a>
+          <img id="prev" src="/images/prev.png" width="36" class="absolute cursor-pointer select-none hover:scale-125 ease-linear duration-150" style="top:2.2rem;left:-3rem;">
+          
+          <div id="1" class="num activeNum">
+            <div class="flex items-center justify-center bg-white rounded-full w-20 h-20 hover:bg-d cursor-pointer absolute top-1" style="box-shadow:0 0 4px #2e8c8a;right: 1.7rem;">
+                <a href="https://act.hoyolab.com/ys/event/signin-sea-v3/index.html?act_id=e202102251931481" class="text-b text-xl font-semibold w-12 h-12 flex text-center items-center select-none" target="_blank">簽到頁面</a>
+            </div>
           </div>
-          <img src="/images/next.png" width="36" class="absolute cursor-pointer select-none" style="top:2.2rem;left:5rem;">
+          <div id="2" class="hidden num">
+            <div class="flex items-center justify-center bg-white rounded-full w-20 h-20 hover:bg-d cursor-pointer absolute top-1" style="box-shadow:0 0 4px #2e8c8a;right: 1.7rem;">
+                <a href="https://genshin.hoyoverse.com/zh-tw/home" class="text-b text-xl font-semibold w-12 h-12 flex text-center items-center select-none" target="_blank">原神官網</a>
+              </div>
+          </div>
+          <div id="3" class="hidden num">
+            <div class="flex items-center justify-center bg-white rounded-full w-20 h-20 hover:bg-d cursor-pointer absolute top-1" style="box-shadow:0 0 4px #2e8c8a;right: 1.7rem;">
+                <a href="https://www.3839.com/hykb/hykb_tools/yuanshen/cxq/" class="text-b text-xl font-semibold w-12 h-12 flex text-center items-center select-none" target="_blank">地圖資源</a>
+              </div>
+          </div>
+          
+          <img id="next" src="/images/next.png" width="36" class="absolute cursor-pointer select-none hover:scale-125 ease-linear duration-150" style="top:2.2rem;left:5rem;">
       </div>
     
 
