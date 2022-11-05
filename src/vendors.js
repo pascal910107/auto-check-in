@@ -245,7 +245,7 @@ $(() => {
       .removeClass("activeNum")
       .addClass("hidden");
     if (num == 1) {
-      num = 3;
+      num = 6;
     } else {
       num--;
     }
@@ -259,7 +259,7 @@ $(() => {
     $("#" + num)
       .removeClass("activeNum")
       .addClass("hidden");
-    if (num == 3) {
+    if (num == 6) {
       num = 1;
     } else {
       num++;
