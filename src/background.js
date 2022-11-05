@@ -54,10 +54,21 @@ async function checkIn() {
   let checkInInfo = await getCheckInInfo();
   //使用者自己登出了
   if (!checkInInfo) {
-    chrome.tabs.create({
-      url: "https://act.hoyolab.com/ys/event/signin-sea-v3/index.html?act_id=e202102251931481",
-      active: false, //開啟分頁時不會focus
-    });
+    //判斷頁籤是否存在 不存在就開啟
+    chrome.tabs.query(
+      {
+        url: "https://act.hoyolab.com/ys/event/signin-sea-v3/index.html?act_id=e202102251931481",
+      },
+      (tabs) => {
+        if (tabs.length === 0) {
+          chrome.tabs.create({
+            url: "https://act.hoyolab.com/ys/event/signin-sea-v3/index.html?act_id=e202102251931481",
+            active: false, //開啟分頁時不會focus
+          });
+        }
+      }
+    );
+
     return false;
   }
   await sign();
