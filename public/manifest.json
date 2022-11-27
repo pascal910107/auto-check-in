@@ -1,14 +1,15 @@
 {
     "name": "原神自動簽到",
     "description": "原神自動簽到",
-    "version": "1.3",
+    "version": "2.0",
     "manifest_version": 3,
     "background": {
       "service_worker": "background.js"
     },
     "host_permissions": [
       "*://*.hoyolab.com/*",
-      "*://*.geetest.com/*"
+      "*://*.geetest.com/*",
+      "*://*.mihoyo.com/"
     ],
     "permissions": ["storage", "alarms", "cookies"],
     "action": {
