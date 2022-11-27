@@ -1,6 +1,7 @@
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const ZipWebpackPlugin = require("zip-webpack-plugin");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
+const { VueLoaderPlugin } = require("vue-loader");
 const webpack = require("webpack");
 
 const path = require("path");
@@ -8,7 +9,8 @@ const path = require("path");
 module.exports = {
   entry: {
     background: "./src/background.js",
-    vendors: "./src/vendors.js",
+    main: "./src/main.js",
+    function: "./src/function.js",
   },
   output: {
     filename: "[name].js",
@@ -17,6 +19,10 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.vue$/,
+        loader: "vue-loader",
+      },
+      {
         test: /\.css$/i,
         include: path.resolve(__dirname, "src"),
         use: ["style-loader", "css-loader", "postcss-loader"],
@@ -24,6 +30,7 @@ module.exports = {
     ],
   },
   plugins: [
+    new VueLoaderPlugin(),
     new CleanWebpackPlugin(),
     new CopyWebpackPlugin({
       patterns: [
