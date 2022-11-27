@@ -222,3 +222,35 @@ async function delay(s) {
     setTimeout(resolve, s * 1000);
   });
 }
+
+async function getRoleInformation() {
+  fetch("https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global", {//
+  // "https://bbs-api-os.hoyolab.com/game_record/app/genshin/api/dailyNote?role_id=801415807&server=亞服(Asia)"
+  // "https://bbs-api-os.hoyolab.com/game_record/genshin/api/dailyNote?role_id=801415807&server=亞服(Asia)"
+  // https://bbs-api-os.hoyolab.com/game_record/genshin/api/dailyNote?role_id="+userRole["game_uid"]+"&server="+userRole["region"]
+    headers: {
+      accept: "*/*",
+      "accept-language": "zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7",
+      "sec-ch-ua":
+        '"Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"',
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": '"Windows"',
+      "sec-fetch-dest": "empty",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-site",
+    },
+    referrer: "https://act.hoyolab.com/",
+    referrerPolicy: "strict-origin-when-cross-origin",
+    body: null,
+    method: "GET",//
+    mode: "cors",
+    credentials: "include",
+  })
+  // 'x-rpc-app_version': '2.22.0',
+  // 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBSOversea/2.22.0',
+  // 'x-rpc-client_type': '2',
+  // 'Origin': 'https://act.hoyolab.com',
+  // 'X-Requested-With': 'com.mihoyo.hoyolab',
+  // 'Referer': 'https://act.hoyolab.com',
+  
+}
