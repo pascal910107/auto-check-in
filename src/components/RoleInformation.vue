@@ -154,7 +154,7 @@
                 result.push(genshinRsp2.data);
             }
             account.roleList = result;
-            console.log(account.roleList);
+            // console.log(account.roleList);
             chrome.storage.sync.set({ roleList: result });
         }
     }
