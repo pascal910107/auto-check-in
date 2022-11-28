@@ -3,17 +3,11 @@ chrome.alarms.create("autoCheckIn", {
   delayInMinutes: 1,
   periodInMinutes: 1,
 });
-chrome.alarms.onAlarm.addListener(() => autoCheckIn());
-// export {};
+chrome.alarms.onAlarm.addListener(() => autoCheckInAndShowRoleInfo());
 
-function autoCheckIn() {
+function autoCheckInAndShowRoleInfo() {
+  getRoleList();
   chrome.storage.sync.get(["time", "state", "lastDate"], (result) => {
-    if (result.time === undefined) {
-      chrome.storage.sync.set({ time: "00:00" });
-    }
-    if (result.state === undefined) {
-      chrome.storage.sync.set({ state: "open" });
-    }
     if (result.lastDate === undefined) {
       chrome.storage.sync.set({
         lastDate: new Date(
@@ -223,34 +217,46 @@ async function delay(s) {
   });
 }
 
-async function getRoleInformation() {
-  fetch("https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global", {//
-  // "https://bbs-api-os.hoyolab.com/game_record/app/genshin/api/dailyNote?role_id=801415807&server=亞服(Asia)"
-  // "https://bbs-api-os.hoyolab.com/game_record/genshin/api/dailyNote?role_id=801415807&server=亞服(Asia)"
-  // https://bbs-api-os.hoyolab.com/game_record/genshin/api/dailyNote?role_id="+userRole["game_uid"]+"&server="+userRole["region"]
-    headers: {
-      accept: "*/*",
-      "accept-language": "zh-TW,zh;q=0.9,en-US;q=0.8,en;q=0.7",
-      "sec-ch-ua":
-        '"Google Chrome";v="105", "Not)A;Brand";v="8", "Chromium";v="105"',
-      "sec-ch-ua-mobile": "?0",
-      "sec-ch-ua-platform": '"Windows"',
-      "sec-fetch-dest": "empty",
-      "sec-fetch-mode": "cors",
-      "sec-fetch-site": "same-site",
-    },
-    referrer: "https://act.hoyolab.com/",
-    referrerPolicy: "strict-origin-when-cross-origin",
-    body: null,
-    method: "GET",//
-    mode: "cors",
-    credentials: "include",
-  })
-  // 'x-rpc-app_version': '2.22.0',
-  // 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBSOversea/2.22.0',
-  // 'x-rpc-client_type': '2',
-  // 'Origin': 'https://act.hoyolab.com',
-  // 'X-Requested-With': 'com.mihoyo.hoyolab',
-  // 'Referer': 'https://act.hoyolab.com',
-  
+async function getRoleList() {
+  let genshinRsp1 = await makeGenshinRequest(
+    "https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global"
+  );
+  if (genshinRsp1.data == null) {
+    //清空角色列表、選擇的角色
+    chrome.storage.sync.set({ roleList: [] });
+    chrome.storage.sync.set({ selectedUid: "" });
+    chrome.storage.sync.set({ selectedRole: {} });
+    chrome.storage.sync.set({ login: "false" });
+    return false;
+  } else {
+    let result = [];
+    for (let i = 0; i < genshinRsp1.data.list.length; i++) {
+      let genshinRsp2 = await makeGenshinRequest(
+        "https://bbs-api-os.hoyolab.com/game_record/app/genshin/api/dailyNote?role_id=" +
+          genshinRsp1.data.list[i].game_uid +
+          "&server=" +
+          genshinRsp1.data.list[i].region
+      );
+      genshinRsp2.data.game_uid = genshinRsp1.data.list[i].game_uid;
+      genshinRsp2.data.nickname = genshinRsp1.data.list[i].nickname;
+      switch (genshinRsp1.data.list[i].region) {
+        case "os_asia":
+          genshinRsp2.data.region = "亞服";
+          break;
+        case "os_euro":
+          genshinRsp2.data.region = "歐服";
+          break;
+        case "os_usa":
+          genshinRsp2.data.region = "美服";
+          break;
+        case "os_cht":
+          genshinRsp2.data.region = "台港澳服";
+          break;
+        default:
+          break;
+      }
+      result.push(genshinRsp2.data);
+    }
+    chrome.storage.sync.set({ roleList: result });
+  }
 }
