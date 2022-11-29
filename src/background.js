@@ -1,3 +1,4 @@
+import { makeGenshinRequest } from "./function.js";
 //create a alarm
 chrome.alarms.create("autoCheckIn", {
   delayInMinutes: 1,
@@ -237,6 +238,9 @@ async function getRoleList() {
           "&server=" +
           genshinRsp1.data.list[i].region
       );
+      if (genshinRsp2.data == null) {
+        continue;
+      }
       genshinRsp2.data.game_uid = genshinRsp1.data.list[i].game_uid;
       genshinRsp2.data.nickname = genshinRsp1.data.list[i].nickname;
       switch (genshinRsp1.data.list[i].region) {

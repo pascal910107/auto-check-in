@@ -1,7 +1,7 @@
 {
     "name": "原神自動簽到",
     "description": "原神自動簽到",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "manifest_version": 3,
     "background": {
       "service_worker": "background.js"

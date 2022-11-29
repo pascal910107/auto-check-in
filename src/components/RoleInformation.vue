@@ -68,7 +68,7 @@
     <div id="select" class="">
       <div class="text-xl font-bold text-g w-full h-20 rounded-lg select-none flex items-center justify-center" style="background:rgba(213,224,222,0.8);">
         請先登入
-        <a href="https://www.hoyolab.com/home" class="bg-b text-a px-4 py-2 rounded-md ml-6" target="_blank">登入</a>
+        <a href="https://act.hoyolab.com/ys/event/signin-sea-v3/index.html?act_id=e202102251931481" class="bg-b text-a px-4 py-2 rounded-md ml-6" target="_blank">登入</a>
       </div>
     </div>
   </div>
@@ -128,6 +128,9 @@
             let result = [];
             for (let i = 0; i < genshinRsp1.data.list.length; i++) {
                 let genshinRsp2 = await makeGenshinRequest("https://bbs-api-os.hoyolab.com/game_record/app/genshin/api/dailyNote?role_id=" + genshinRsp1.data.list[i].game_uid + "&server=" + genshinRsp1.data.list[i].region);
+                if (genshinRsp2.data == null) {
+                  continue;
+                }
                 genshinRsp2.data.game_uid = genshinRsp1.data.list[i].game_uid;
                 genshinRsp2.data.nickname = genshinRsp1.data.list[i].nickname;
                 switch (genshinRsp1.data.list[i].region) {
