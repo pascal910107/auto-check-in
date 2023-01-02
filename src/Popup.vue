@@ -32,9 +32,9 @@
 
 
     onBeforeMount(async() => {
-        await chrome.storage.sync.get(["state", "time", "login", "checkIn"], (result) => {
+        await chrome.storage.sync.get(["state", "stime", "login", "checkIn"], (result) => {
             result.state ? state.value = result.state : (state.value = "open", chrome.storage.sync.set({ state: "open" }));
-            result.time ? time.value = result.time : (time.value = "00:00", chrome.storage.sync.set({ time: "08:00" }));
+            result.stime ? time.value = result.stime : (time.value = "00:01", chrome.storage.sync.set({ stime: "00:01" }));
             result.login ? login.value = result.login : (login.value = "false", chrome.storage.sync.set({ login: "false" }));
             result.checkIn ? checkIn.value = result.checkIn : (checkIn.value = "false", chrome.storage.sync.set({ checkIn: "false" }));
         });

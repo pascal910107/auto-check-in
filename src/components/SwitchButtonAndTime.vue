@@ -29,7 +29,7 @@
         // console.log(props.time);
     }
     function changeTime () {
-        chrome.storage.sync.set({ time: time.value });
+        chrome.storage.sync.set({ stime: time.value });
         emits('update:time', time.value);
         // console.log(time.value);
         

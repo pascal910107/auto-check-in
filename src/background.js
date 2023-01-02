@@ -8,8 +8,8 @@ chrome.alarms.onAlarm.addListener(() => autoCheckInAndShowRoleInfo());
 
 function autoCheckInAndShowRoleInfo() {
   getRoleList();
-  chrome.storage.sync.get(["time", "state", "lastDate"], (result) => {
-    if (result.lastDate === undefined) {
+  chrome.storage.sync.get(["stime", "state", "lastDate"], (result) => {
+    if (result.lastDate == undefined) {
       chrome.storage.sync.set({
         lastDate: new Date(
           new Date().getTime() - 1000 * 60 * 60 * 24
@@ -22,11 +22,12 @@ function autoCheckInAndShowRoleInfo() {
       now.getFullYear(),
       now.getMonth(),
       now.getDate(),
-      result.time.split(":")[0],
-      result.time.split(":")[1]
+      result.stime.split(":")[0],
+      result.stime.split(":")[1]
     );
     if (result.state === "open") {
       //與上次簽到不同天且時間大於設定時間就自動簽到
+
       if (
         (now.toLocaleString().split(/[/ ]/)[0] !==
           result.lastDate.split(/[/ ]/)[0] ||
