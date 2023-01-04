@@ -1,8 +1,8 @@
 import { makeGenshinRequest } from "./function.js";
 //create a alarm
 chrome.alarms.create("autoCheckIn", {
-  delayInMinutes: 1,
-  periodInMinutes: 1,
+  delayInMinutes: 0.1,
+  periodInMinutes: 0.1,
 });
 chrome.alarms.onAlarm.addListener(() => autoCheckInAndShowRoleInfo());
 
@@ -15,6 +15,9 @@ function autoCheckInAndShowRoleInfo() {
           new Date().getTime() - 1000 * 60 * 60 * 24
         ).toLocaleString(),
       });
+      result.lastDate = new Date(
+        new Date().getTime() - 1000 * 60 * 60 * 24
+      ).toLocaleString();
     }
 
     let now = new Date();
@@ -48,6 +51,9 @@ function autoCheckInAndShowRoleInfo() {
 //簽到
 async function checkIn() {
   let checkInInfo = await getCheckInInfo();
+  if (checkInInfo["signed"] == true) {
+    return true;
+  }
   //使用者自己登出了
   if (!checkInInfo) {
     //判斷頁籤是否存在 不存在就開啟
@@ -71,6 +77,7 @@ async function checkIn() {
   chrome.storage.sync.set({ lastDate: new Date().toLocaleString() });
   //補簽
   await resign(checkInInfo);
+  return true;
 }
 
 async function getCheckInInfo() {
