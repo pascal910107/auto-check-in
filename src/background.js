@@ -1,8 +1,8 @@
 import { makeGenshinRequest } from "./function.js";
 //create a alarm
 chrome.alarms.create("autoCheckIn", {
-  delayInMinutes: 0.1,
-  periodInMinutes: 0.1,
+  delayInMinutes: 1,
+  periodInMinutes: 1,
 });
 chrome.alarms.onAlarm.addListener(() => autoCheckInAndShowRoleInfo());
 
@@ -30,7 +30,6 @@ function autoCheckInAndShowRoleInfo() {
     );
     if (result.state === "open") {
       //與上次簽到不同天且時間大於設定時間就自動簽到
-
       if (
         (now.toLocaleString().split(/[/ ]/)[0] !==
           result.lastDate.split(/[/ ]/)[0] ||
