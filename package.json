@@ -1,6 +1,6 @@
 {
   "name": "auto-check-in",
-  "version": "2.0.4",
+  "version": "2.0.7",
   "description": "",
   "scripts": {
     "dev": "webpack --watch --config webpack.dev.js",

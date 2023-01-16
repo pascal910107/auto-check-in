@@ -1,51 +1,5 @@
 import { makeGenshinRequest } from "./function.js";
 //create a alarm
-chrome.alarms.create("autoCheckIn", {
-  delayInMinutes: 1,
-  periodInMinutes: 1,
-});
-chrome.alarms.onAlarm.addListener(() => autoCheckInAndShowRoleInfo());
-
-function autoCheckInAndShowRoleInfo() {
-  getRoleList();
-  chrome.storage.sync.get(["stime", "state", "lastDate"], (result) => {
-    if (result.lastDate == undefined) {
-      chrome.storage.sync.set({
-        lastDate: new Date(
-          new Date().getTime() - 1000 * 60 * 60 * 24
-        ).toLocaleString(),
-      });
-      result.lastDate = new Date(
-        new Date().getTime() - 1000 * 60 * 60 * 24
-      ).toLocaleString();
-    }
-
-    let now = new Date();
-    let signTime = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      result.stime.split(":")[0],
-      result.stime.split(":")[1]
-    );
-    if (result.state === "open") {
-      //與上次簽到不同天且時間大於設定時間就自動簽到
-      if (
-        (now.toLocaleString().split(/[/ ]/)[0] !==
-          result.lastDate.split(/[/ ]/)[0] ||
-          now.toLocaleString().split(/[/ ]/)[1] !==
-            result.lastDate.split(/[/ ]/)[1] ||
-          now.toLocaleString().split(/[/ ]/)[2] !==
-            result.lastDate.split(/[/ ]/)[2]) &&
-        now.getTime() >= signTime.getTime()
-      ) {
-        checkIn();
-      }
-    } else if (result.state === "close") {
-      //不自動簽到
-    }
-  });
-}
 
 //簽到
 async function checkIn() {
@@ -72,7 +26,14 @@ async function checkIn() {
 
     return false;
   }
-  await sign();
+  let count = 10;
+  while (checkInInfo["signed"] != true && count--) {
+    await sign();
+    checkInInfo = await getCheckInInfo();
+  }
+  if (checkInInfo["signed"] != true) {
+    return false;
+  }
   chrome.storage.sync.set({ lastDate: new Date().toLocaleString() });
   //補簽
   await resign(checkInInfo);
@@ -266,8 +227,66 @@ async function getRoleList() {
         default:
           break;
       }
+      chrome.storage.sync.get(["selectedUid"], (result) => {
+        result.selectedUid == "" &&
+          chrome.storage.sync.set({
+            selectedUid: genshinRsp1.data.list[0].game_uid,
+          });
+
+        if (genshinRsp2.data.game_uid === result.selectedUid) {
+          chrome.storage.sync.set({ selectedRole: genshinRsp2.data });
+        }
+      });
+
       result.push(genshinRsp2.data);
     }
     chrome.storage.sync.set({ roleList: result });
   }
+}
+
+chrome.alarms.create("autoCheckIn", {
+  delayInMinutes: 1,
+  periodInMinutes: 1,
+});
+chrome.alarms.onAlarm.addListener(() => autoCheckInAndShowRoleInfo());
+
+function autoCheckInAndShowRoleInfo() {
+  chrome.storage.sync.get(["stime", "state", "lastDate"], (result) => {
+    if (result.lastDate == undefined) {
+      chrome.storage.sync.set({
+        lastDate: new Date(
+          new Date().getTime() - 1000 * 60 * 60 * 24
+        ).toLocaleString(),
+      });
+      result.lastDate = new Date(
+        new Date().getTime() - 1000 * 60 * 60 * 24
+      ).toLocaleString();
+    }
+
+    let now = new Date();
+    let signTime = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      result.stime.split(":")[0],
+      result.stime.split(":")[1]
+    );
+    if (result.state === "open") {
+      //與上次簽到不同天且時間大於設定時間就自動簽到
+      if (
+        (now.toLocaleString().split(/[/ ]/)[0] !=
+          result.lastDate.split(/[/ ]/)[0] ||
+          now.toLocaleString().split(/[/ ]/)[1] !=
+            result.lastDate.split(/[/ ]/)[1] ||
+          now.toLocaleString().split(/[/ ]/)[2] !=
+            result.lastDate.split(/[/ ]/)[2]) &&
+        now.getTime() >= signTime.getTime()
+      ) {
+        checkIn();
+      }
+    } else if (result.state === "close") {
+      //不自動簽到
+    }
+    getRoleList();
+  });
 }
