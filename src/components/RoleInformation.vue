@@ -59,7 +59,7 @@
             每日委託 {{ selectedRole.role.finished_task_num }}/{{ selectedRole.role.total_task_num }}
         </span>
         <span class="p-2 text-b text-xl font-semibold select-none flex items-center justify-center rounded-lg">
-            半價周本 {{ selectedRole.role.remain_resin_discount_num }}/{{ selectedRole.role.resin_discount_num_limit }}
+            半價周本 {{ selectedRole.role.resin_discount_num_limit - selectedRole.role.remain_resin_discount_num }}/{{ selectedRole.role.resin_discount_num_limit }}
         </span>
       </div>
     </div>
@@ -127,7 +127,9 @@
         } else {
             let result = [];
             for (let i = 0; i < genshinRsp1.data.list.length; i++) {
+                // console.log(genshinRsp1.data.list[i]);
                 let genshinRsp2 = await makeGenshinRequest("https://bbs-api-os.hoyolab.com/game_record/app/genshin/api/dailyNote?role_id=" + genshinRsp1.data.list[i].game_uid + "&server=" + genshinRsp1.data.list[i].region);
+                // console.log(genshinRsp2);
                 if (genshinRsp2.data == null) {
                   continue;
                 }

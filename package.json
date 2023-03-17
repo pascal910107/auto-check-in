@@ -1,6 +1,6 @@
 {
   "name": "auto-check-in",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "",
   "scripts": {
     "dev": "webpack --watch --config webpack.dev.js",
@@ -10,6 +10,10 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@babel/cli": "^7.21.0",
+    "@babel/core": "^7.21.3",
+    "@babel/preset-env": "^7.20.2",
+    "babel-loader": "^9.1.2",
     "clean-webpack-plugin": "^4.0.0",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.1",
