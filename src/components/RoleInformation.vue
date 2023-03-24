@@ -128,6 +128,7 @@
             let result = [];
             for (let i = 0; i < genshinRsp1.data.list.length; i++) {
                 // console.log(genshinRsp1.data.list[i]);
+                let preRequest = await makeGenshinRequest("https://bbs-api-os.hoyolab.com/game_record/app/genshin/api/index?role_id=" + genshinRsp1.data.list[i].game_uid + "&server=" + genshinRsp1.data.list[i].region);
                 let genshinRsp2 = await makeGenshinRequest("https://bbs-api-os.hoyolab.com/game_record/app/genshin/api/dailyNote?role_id=" + genshinRsp1.data.list[i].game_uid + "&server=" + genshinRsp1.data.list[i].region);
                 // console.log(genshinRsp2);
                 if (genshinRsp2.data == null) {
