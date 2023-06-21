@@ -31,7 +31,21 @@ async function checkIn() {
     await sign();
     checkInInfo = await getCheckInInfo();
   }
+  //正常簽到失敗，可能是網路問題或驗證碼，開啟簽到頁面
   if (checkInInfo["signed"] != true) {
+    chrome.tabs.query(
+      {
+        url: "https://act.hoyolab.com/ys/event/signin-sea-v3/index.html?act_id=e202102251931481",
+      },
+      (tabs) => {
+        if (tabs.length === 0) {
+          chrome.tabs.create({
+            url: "https://act.hoyolab.com/ys/event/signin-sea-v3/index.html?act_id=e202102251931481",
+            active: false, //開啟分頁時不會focus
+          });
+        }
+      }
+    );
     return false;
   }
   chrome.storage.sync.set({ lastDate: new Date().toLocaleString() });
