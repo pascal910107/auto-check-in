@@ -1,6 +1,7 @@
 import { cookies } from "webextension-polyfill";
 
 export async function makeGenshinRequest(url) {
+  console.log("make request to: ", url);
   let cookie = await getCookie();
   let ds = getDS(url);
   let response = await fetch(url, {
@@ -17,8 +18,15 @@ export async function makeGenshinRequest(url) {
       DS: ds,
     },
   });
-
+  if (response.status >= 400) {
+    console.log(response.status, "bad response from Genshin server: ", response);
+    return;
+  } else if (response.status >= 300) {
+    console.log(response.status, "redirected from Genshin server: ", response);
+    return;
+  }
   let data = await response.json();
+  console.log(response.status, "response from Genshin server: ", data);
   return data;
 }
 

@@ -1,7 +1,7 @@
 {
     "name": "原神助手",
     "description": "自動簽到 + 即時資訊",
-    "version": "2.0.10",
+    "version": "2.0.11",
     "manifest_version": 3,
     "background": {
       "service_worker": "background.js"
