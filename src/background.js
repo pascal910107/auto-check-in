@@ -1,4 +1,4 @@
-import { makeGenshinRequest } from "./function.js";
+import { makeGenshinRequest, getHeader, initResponseRules } from "./function.js";
 //create a alarm
 
 //簽到
@@ -260,8 +260,10 @@ async function delay(s) {
 }
 
 async function getRoleList() {
+  let headers1 = await getHeader({}, {}, false);
   let genshinRsp1 = await makeGenshinRequest(
-    "https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global"
+    "https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global",
+    headers1
   );
   if (genshinRsp1.data == null) {
     console.log("can't get role list, clear existing role list");
@@ -275,20 +277,31 @@ async function getRoleList() {
     console.log("get role list success");
     let result = [];
     for (let i = 0; i < genshinRsp1.data.list.length; i++) {
+      let roleId = genshinRsp1.data.list[i].game_uid;
+      let serverRegion = genshinRsp1.data.list[i].region;
+      let nickname = genshinRsp1.data.list[i].nickname;
+      const params = {
+        role_id: roleId,
+        server: serverRegion,
+      };
+
+      let headers2 = await getHeader(params, {}, true);
       let genshinRsp2 = await makeGenshinRequest(
         "https://bbs-api-os.hoyolab.com/game_record/app/genshin/api/dailyNote?role_id=" +
-          genshinRsp1.data.list[i].game_uid +
+          roleId +
           "&server=" +
-          genshinRsp1.data.list[i].region
+          serverRegion,
+          headers2
       );
+      console.log("genshinRsp2", genshinRsp2);
       if (genshinRsp2.data == null) {
         console.log("can't get role info, skip");
         continue;
       }
-      genshinRsp2.data.game_uid = genshinRsp1.data.list[i].game_uid;
-      genshinRsp2.data.nickname = genshinRsp1.data.list[i].nickname;
+      genshinRsp2.data.game_uid = roleId;
+      genshinRsp2.data.nickname = nickname;
       console.log("current role info: ", genshinRsp2.data);
-      switch (genshinRsp1.data.list[i].region) {
+      switch (serverRegion) {
         case "os_asia":
           genshinRsp2.data.region = "亞服";
           break;
@@ -305,16 +318,17 @@ async function getRoleList() {
           break;
       }
       chrome.storage.sync.get(["selectedUid"], (result) => {
-        result.selectedUid == "" &&
+        if (result.selectedUid == "" || result.selectedUid == undefined) {
           chrome.storage.sync.set({
             selectedUid: genshinRsp1.data.list[0].game_uid,
           });
+          result.selectedUid == genshinRsp1.data.list[0].game_uid;
+        }
 
         if (genshinRsp2.data.game_uid === result.selectedUid) {
           chrome.storage.sync.set({ selectedRole: genshinRsp2.data });
         }
       });
-      console.log("add role info to role list");
       result.push(genshinRsp2.data);
     }
     console.log("set role list: ", result);
@@ -322,9 +336,11 @@ async function getRoleList() {
   }
 }
 
+initResponseRules();
+
 chrome.alarms.create("autoCheckIn", {
   delayInMinutes: 0.1,
-  periodInMinutes: 0.1,
+  periodInMinutes: 1,
 });
 chrome.alarms.onAlarm.addListener(() => autoCheckInAndShowRoleInfo());
 

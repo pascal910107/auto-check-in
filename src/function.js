@@ -1,23 +1,112 @@
-import { cookies } from "webextension-polyfill";
+import { cookies, storage } from "webextension-polyfill";
 
-export async function makeGenshinRequest(url) {
+
+const targetPages = [
+  'https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global',
+  'https://api-takumi.mihoyo.com/binding/api/getUserGameRolesByCookieToken?game_biz=hk4e_cn',
+  'https://bbs-api-os.hoyolab.com/game_record/app/genshin/api/dailyNote*',
+  'https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote*',
+  'https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/createVerification*',
+  'https://api-takumi-record.mihoyo.com/game_record/app/card/wapi/verifyVerification*',
+  'https://bbs-api-os.hoyolab.com/game_record/app/card/wapi/createVerification*',
+  'https://bbs-api-os.hoyolab.com/game_record/app/card/wapi/verifyVerification*',
+  'https://apiv6.geetest.com/ajax.php?pt=3&client_type=web_mobile&lang=zh-cn*',
+  'https://public-data-api.mihoyo.com/device-fp/api/getFp*',
+  'https://bbs-api.mihoyo.com/user/wapi/getUserFullInfo?gids=2',
+]
+
+const ruleID = 114514
+
+const generateHeaderRules = (headers) => {
+  const requestHeaders = []
+  for (const [key, value] of Object.entries(headers)) {
+    requestHeaders.push({
+      header: key,
+      operation: chrome.declarativeNetRequest.HeaderOperation.SET,
+      value,
+    })
+  }
+  return requestHeaders
+}
+
+export const range = (start, end) => Array.from({ length: end - start + 1 }, (_, i) => start + i);
+
+export const updateRules = async (headers) => {
+  const rules = []
+  for (let i = 0; i < targetPages.length; i++) {
+    rules.push({
+      id: ruleID + i,
+      priority: 1,
+      action: {
+        type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
+        requestHeaders: generateHeaderRules(headers),
+      },
+      condition: { urlFilter: targetPages[i] },
+    })
+  }
+
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: range(ruleID, ruleID + targetPages.length - 1),
+    addRules: rules,
+  })
+}
+
+export const resetRules = async () => {
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: range(ruleID, ruleID + targetPages.length - 1),
+  })
+}
+
+const responseRuleID = 19198
+
+export const initResponseRules = async () => {
+  const rules = []
+  for (let i = 0; i < targetPages.length; i++) {
+    rules.push({
+      id: responseRuleID + i,
+      priority: 1,
+      action: {
+        type: chrome.declarativeNetRequest.RuleActionType.MODIFY_HEADERS,
+        responseHeaders: [
+          {
+            header: 'set-cookie',
+            operation: chrome.declarativeNetRequest.HeaderOperation.REMOVE,
+          },
+        ],
+      },
+      condition: { urlFilter: targetPages[i] },
+    })
+  }
+
+  await chrome.declarativeNetRequest.updateDynamicRules({
+    removeRuleIds: range(responseRuleID, responseRuleID + targetPages.length - 1),
+    addRules: rules,
+  })
+}
+
+export const clearHoYoLABCookie = async function () {
+  const originCookieList = await cookies.getAll({
+    domain: 'hoyolab.com',
+  });
+  const cookieList = originCookieList.map(cookie => ({
+    name: cookie.name,
+    url: 'https://hoyolab.com',
+  }));
+
+  for (const cookie of cookieList) await cookies.remove(cookie);
+  console.log('cleared hoyolab cookie');
+}
+
+export async function makeGenshinRequest(url, headers) {
   console.log("make request to: ", url);
   let cookie = await getCookie();
-  let ds = getDS(url);
+  headers.Cookie = cookie;
+  await updateRules(headers)
+
   let response = await fetch(url, {
     method: "GET",
-    headers: {
-      "x-rpc-app_version": "2.22.0",
-      "User-Agent":
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 16_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBSOversea/2.22.0",
-      "x-rpc-client_type": "2",
-      Origin: "https://act.hoyolab.com",
-      "X-Requested-With": "com.mihoyo.hoyolab",
-      Referer: "https://act.hoyolab.com",
-      Cookie: cookie,
-      DS: ds,
-    },
-  });
+    headers: headers
+  }).finally(() => resetRules());
   if (response.status >= 400) {
     console.log(response.status, "bad response from Genshin server: ", response);
     return;
@@ -30,37 +119,89 @@ export async function makeGenshinRequest(url) {
   return data;
 }
 
+export const readDataFromStorage = async (key, defaultVal) => {
+  const data = await storage.local.get(key)
+  if (data[key] !== undefined)
+    return data[key]
+  else
+    return defaultVal
+}
+
+export async function getHeader(params, body, ds) {
+  const client = {
+    'x-rpc-app_version': '2.22.0',
+    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_1_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) miHoYoBBSOversea/2.22.0',
+    'x-rpc-client_type': '2',
+    'Origin': 'https://act.hoyolab.com',
+    'X-Requested-With': 'com.mihoyo.hoyolab',
+    'Referer': 'https://act.hoyolab.com',
+  };
+  const headers = { ...client };
+  if (ds) {
+    const dsStr = getDS(params, body);
+    headers.DS = dsStr;
+  }
+  headers['x-rpc-device_id'] = (await getDeviceId()).toUpperCase();
+  return headers;
+}
+
+const latestDeviceMetaRandom = 'CMuZH62qyhKEAWR'
+const deviceIdNeedUpdate = async () => {
+  const deviceId = await readDataFromStorage('deviceId', '')
+  if (deviceId === '') {
+    return true
+  }
+  const prevRandom = await readDataFromStorage('deviceIdRandom', '')
+  if (prevRandom !== latestDeviceMetaRandom) {
+    return true
+  }
+  return false
+}
+
+export const writeDataToStorage = async (key, data) => {
+  await storage.local.set({ [key]: data })
+}
+
+export const getDeviceId = async () => {
+  // 從 storage 中讀取 deviceId
+  let deviceId = await readDataFromStorage('deviceId', '')
+
+  // 如果 deviceId 為空或需要更新，則重新生成 deviceId
+  if (deviceId === '' || (await deviceIdNeedUpdate())) {
+    deviceId = crypto.randomUUID()
+    await writeDataToStorage('deviceId', deviceId)
+    await writeDataToStorage('deviceIdRandom', latestDeviceMetaRandom)
+  }
+  return deviceId
+}
+
+
 export async function getCookie() {
-  let cookieString = "";
-  const _cookies = await cookies.getAll({ domain: "hoyolab.com" });
+  let cookieString = '';
+  const _cookies = await cookies.getAll({ domain: 'hoyolab.com' });
   if (_cookies.length !== 0) {
-    cookieString = "";
-    for (const cookie of _cookies)
-      cookieString += `${cookie.name}=${encodeURIComponent(cookie.value)};`;
+    cookieString = _cookies.map(cookie => `${cookie.name}=${cookie.value};`).join('');
     return cookieString;
   } else {
-    return "";
+    return '';
   }
 }
 
-export function getDS(url) {
+export function getDS(params, body) {
   const timestamp = Math.floor(Date.now() / 1000);
-  const random = randomIntFromInterval(100000, 200000);
-  const param = url.split("?")[1];
-  const text = `salt=okr4obncj8bw5a65hbnn5oo6ixjc3l9w&t=${timestamp}&r=${random}&b=&q=${param}`;
-  const check = md5(text);
-  return `${timestamp},${random},${check}`;
+  const randomStr = randomIntFromInterval(100000, 200000);
+  const bodyStr = (body && Object.keys(body).length > 0) ? JSON.stringify(body) : '';
+  const paramStr = (params && Object.keys(params).length > 0) ? stringifyParams(params) : '';
+  const salt = 'okr4obncj8bw5a65hbnn5oo6ixjc3l9w';
+  const text = `salt=${salt}&t=${timestamp}&r=${randomStr}&b=${bodyStr}&q=${paramStr}`;
+  const sign = md5(text);
+  return `${timestamp},${randomStr},${sign}`;
 }
 
 export function stringifyParams(params) {
   const keys = Object.keys(params);
   keys.sort();
-  const values = [];
-  keys.forEach((key) => {
-    values.push(`${key}=${params[key]}`);
-  });
-  const paramsStr = values.join("&");
-  return paramsStr;
+  return keys.map(key => `${key}=${params[key]}`).join('&');
 }
 
 function randomIntFromInterval(min, max) {

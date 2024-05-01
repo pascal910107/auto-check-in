@@ -76,7 +76,7 @@
 
 <script setup>
     import { ref, reactive, defineProps, onBeforeMount } from "vue";
-    import { makeGenshinRequest, calFinTime, convertSecondToHour } from "../function.js";
+    import { makeGenshinRequest, calFinTime, convertSecondToHour, getHeader } from "../function.js";
 
     const login = defineProps(['login']);
     const account = reactive({
@@ -86,7 +86,6 @@
     const selectedRole = reactive({
       role: {},
     });
-
 
     onBeforeMount(async() => {
       await chrome.storage.sync.get(["roleList"], async(result) => {
@@ -103,7 +102,6 @@
           await getRoleList();
         }
       });
-      
     });
 
     const onSelectUidChange = (e) => {
@@ -115,7 +113,8 @@
     
 
     async function getRoleList() {
-        let genshinRsp1 = await makeGenshinRequest("https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global");
+        let headers1 = await getHeader({}, {}, false);
+        let genshinRsp1 = await makeGenshinRequest("https://api-os-takumi.mihoyo.com/binding/api/getUserGameRolesByCookie?game_biz=hk4e_global", headers1);
         if (genshinRsp1.data == null) {
             //清空角色列表、選擇的角色
             account.roleList = [];
@@ -127,16 +126,21 @@
         } else {
             let result = [];
             for (let i = 0; i < genshinRsp1.data.list.length; i++) {
-                // console.log(genshinRsp1.data.list[i]);
-                let preRequest = await makeGenshinRequest("https://bbs-api-os.hoyolab.com/game_record/app/genshin/api/index?role_id=" + genshinRsp1.data.list[i].game_uid + "&server=" + genshinRsp1.data.list[i].region);
-                let genshinRsp2 = await makeGenshinRequest("https://bbs-api-os.hoyolab.com/game_record/app/genshin/api/dailyNote?role_id=" + genshinRsp1.data.list[i].game_uid + "&server=" + genshinRsp1.data.list[i].region);
-                // console.log(genshinRsp2);
+                let roleId = genshinRsp1.data.list[i].game_uid;
+                let serverRegion = genshinRsp1.data.list[i].region;
+                let nickname = genshinRsp1.data.list[i].nickname;
+                const params = {
+                  role_id: roleId,
+                  server: serverRegion,
+                };
+                let headers2 = await getHeader(params, {}, true);
+                let genshinRsp2 = await makeGenshinRequest("https://bbs-api-os.hoyolab.com/game_record/app/genshin/api/dailyNote?role_id=" + roleId + "&server=" + serverRegion, headers2);
                 if (genshinRsp2.data == null) {
                   continue;
                 }
-                genshinRsp2.data.game_uid = genshinRsp1.data.list[i].game_uid;
-                genshinRsp2.data.nickname = genshinRsp1.data.list[i].nickname;
-                switch (genshinRsp1.data.list[i].region) {
+                genshinRsp2.data.game_uid = roleId;
+                genshinRsp2.data.nickname = nickname;
+                switch (serverRegion) {
                   case "os_asia":
                     genshinRsp2.data.region = "亞服";
                     break;
@@ -152,7 +156,10 @@
                   default:
                     break;
                 }
-                selectedUid.value == "" && (selectedUid.value = genshinRsp1.data.list[0].game_uid, chrome.storage.sync.set({ selectedUid: genshinRsp1.data.list[0].game_uid }));
+                if (selectedUid.value == "" || selectedUid.value == undefined) {
+                  selectedUid.value = genshinRsp1.data.list[0].game_uid;
+                  chrome.storage.sync.set({ selectedUid: genshinRsp1.data.list[0].game_uid });
+                }
                 if (genshinRsp2.data.game_uid === selectedUid.value) {
                   selectedRole.role = genshinRsp2.data;
                   chrome.storage.sync.set({ selectedRole: selectedRole.role });
@@ -160,7 +167,7 @@
                 result.push(genshinRsp2.data);
             }
             account.roleList = result;
-            // console.log(account.roleList);
+            console.log("set role list: ", account.roleList);
             chrome.storage.sync.set({ roleList: result });
         }
     }
